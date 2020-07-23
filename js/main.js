@@ -1,5 +1,21 @@
 {
 
+  /**
+   * 全局异常处理
+   * @param {*} msg
+   * @param {*} url
+   * @param {*} l
+   */
+  window.onerror = function (msg, url, l) {
+    var txt = "There was an error on this page.\n\n"
+    txt += "Error: " + msg + "\n"
+    txt += "URL: " + url + "\n"
+    txt += "Line: " + l + "\n\n"
+    txt += "Click OK to continue.\n\n"
+    alert(txt)
+    return true
+  }
+
   let host = location.host;
   let base_path = `//${host}/CODE/`;
 
@@ -39,6 +55,11 @@
     })
   }
 
+  /**
+   * get 请求
+   * @param {*} url 
+   * @param {*} data 
+   */
   const get = function (url, data) {
     return new Promise((resolve, reject) => {
       var xhr = new XMLHttpRequest();
@@ -59,12 +80,19 @@
     })
   }
 
+  /**
+   * 获取列表
+   * @param {*} nodeName 
+   * @param {*} nodeType 
+   */
   const getFileNodes = function (nodeName, nodeType) {
     get(base_path + nodeName).then(data => {
       let reg_base = new RegExp("<pre>([^`]*)</pre>", "g");
       let match_base = data.match(reg_base);
       if (!match_base) {
         return []
+      } else {
+        console.log(JSON.stringify({ base_path, nodeName, data }, 0, 2))
       }
       let array_base = match_base[0].split("\n");
 
@@ -77,59 +105,68 @@
     })
   }
 
+  /**
+   * 加载页面
+   * @param {*} array_content 
+   */
   const buildPage = function (array_content) {
-    let content = "<ul>";
+    let contentList = []
     array_content.forEach(element => {
       let element_short = element.replace(/(.*\/)??([^/]+)\/?$/, "$2");
-      if (element.endsWith(".jpg") || element.endsWith(".jpeg")) {
-        content = content + "<li class='li-img'><img src='../" + element + "' title='" + element_short + "'></li>"
+      if (/\.(jpe?g|png)$/.test(element)) {
+        contentList.push(`<li class='li-img'><img src='${base_path + element}' title='${element_short}' ></li>`);
+      } else if (/\.mp4$/.test(element)) {
+        contentList.push(`<li class='li-img'><video controls src='${base_path + element}' title='${element_short}' ></li>`);
       } else {
-        content = content + "<li><a href='" + element + "'>" + element_short + "</a></li>"
+        contentList.push(`<li><a href='${element}'>${element_short}</a></li>`);
       }
     });
-    content = content + "</ul>"
 
-    main.innerHTML = content;
+    main.innerHTML = `<ul class=clearfix>${contentList.join('\n')}</ul>`;
   }
 
-  bindEvent('a', 'click', function (e) {
-    e.preventDefault();
-    getFileNodes(this.getAttribute('href'));
-  })
+  /**
+   * 事件监听
+   */
+  const eventHandler = () => {
+    /**
+     * 点击浏览下一级
+     */
+    bindEvent('a', 'click', function (e) {
+      e.preventDefault();
+      getFileNodes(this.getAttribute('href'));
+    })
 
-  bindEvent('#nav', 'click', function (e) {
-    e.preventDefault();
-    let currPath = this.getAttribute('path');
-    let prePath = currPath.replace(/^(.*\/)??([^/]+)\/?$/, '$1');
+    /**
+     * 点击返回
+     */
+    bindEvent('#nav', 'click', function (e) {
+      e.preventDefault();
+      let currPath = this.getAttribute('path');
+      let prePath = currPath.replace(/^(.*\/)??([^/]+)\/?$/, '$1');
 
-    getFileNodes(prePath);
-  })
+      getFileNodes(prePath);
+    })
 
-  bindEvent('.li-img img', "click", function (e) {
-    let width = document.body.clientWidth * 0.8;
-    let height = window.screen.height;
+    /**
+     * 图片最大化
+     */
+    bindEvent('.li-img img', "click", function (e) {
+      let width = document.body.clientWidth * 0.8;
+      let height = window.screen.height;
 
-    el('#show img').src = this.getAttribute('src')
-    el('#show').classList.add('show')
-    el('#show').classList.remove('hide')
-  })
+      el('#show img').src = this.getAttribute('src')
+      el('#show').classList.add('show')
+      el('#show').classList.remove('hide')
+    })
 
-  bindEvent('#show', 'click', () => {
-    el('#show').classList.add('hide')
-    el('#show').classList.remove('show')
-  })
+    bindEvent('#show', 'click', () => {
+      el('#show').classList.add('hide')
+      el('#show').classList.remove('show')
+    })
 
-
-  window.onerror = handleError
-  function handleError(msg, url, l) {
-    var txt = "There was an error on this page.\n\n"
-    txt += "Error: " + msg + "\n"
-    txt += "URL: " + url + "\n"
-    txt += "Line: " + l + "\n\n"
-    txt += "Click OK to continue.\n\n"
-    alert(txt)
-    return true
   }
 
+  eventHandler()
   getFileNodes("");
 }
