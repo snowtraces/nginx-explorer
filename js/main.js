@@ -92,7 +92,7 @@
       if (!match_base) {
         return []
       } else {
-        console.log(JSON.stringify({ base_path, nodeName, data }, 0, 2))
+        // console.log(JSON.stringify({ base_path, nodeName, data }, 0, 2))
       }
       let array_base = match_base[0].split("\n");
 
@@ -105,6 +105,15 @@
     })
   }
 
+  const initImg = function () {
+    elAll('li > img').forEach(img => {
+      if (img.offsetTop < window.scrollY + window.outerHeight) {
+        let src = img.getAttribute('raw-src')
+        img.setAttribute('src', src)
+      }
+    })
+  }
+
   /**
    * 加载页面
    * @param {*} array_content 
@@ -114,7 +123,7 @@
     array_content.forEach(element => {
       let element_short = element.replace(/(.*\/)??([^/]+)\/?$/, "$2");
       if (/\.(jpe?g|png)$/.test(element)) {
-        contentList.push(`<li class='li-img'><img src='${base_path + element}' title='${element_short}' ></li>`);
+        contentList.push(`<li class='li-img'><img raw-src='${base_path + element}' title='${element_short}' ></li>`);
       } else if (/\.mp4$/.test(element)) {
         contentList.push(`<li class='li-img'><video controls src='${base_path + element}' title='${element_short}' ></li>`);
       } else {
@@ -123,6 +132,7 @@
     });
 
     main.innerHTML = `<ul class=clearfix>${contentList.join('\n')}</ul>`;
+    initImg();
   }
 
   /**
@@ -152,9 +162,6 @@
      * 图片最大化
      */
     bindEvent('.li-img img', "click", function (e) {
-      let width = document.body.clientWidth * 0.8;
-      let height = window.screen.height;
-
       el('#show img').src = this.getAttribute('src')
       el('#show').classList.add('show')
       el('#show').classList.remove('hide')
@@ -163,6 +170,13 @@
     bindEvent('#show', 'click', () => {
       el('#show').classList.add('hide')
       el('#show').classList.remove('show')
+    })
+
+    /**
+     * 图片异步加载
+     */
+    window.addEventListener('scroll', function (e) {
+      initImg();
     })
 
   }
