@@ -83,9 +83,10 @@
   /**
    * 获取列表
    * @param {*} nodeName 
-   * @param {*} nodeType 
+   * @param {*} from_scrollY 
+   * @param {*} to_scrollY 
    */
-  const getFileNodes = function (nodeName, nodeType) {
+  const getFileNodes = function (nodeName, from_scrollY, to_scrollY) {
     get(base_path + nodeName).then(data => {
       let reg_base = new RegExp("<pre>([^`]*)</pre>", "g");
       let match_base = data.match(reg_base);
@@ -100,8 +101,9 @@
         .filter(href => href != "../" && href != "admin/" && href != "</pre>")
         .map(href => nodeName + href);
 
-      buildPage(next_nodes || [])
+      buildPage(next_nodes || [], to_scrollY)
       nav.setAttribute('path', nodeName)
+      nav.setAttribute('scrollY', from_scrollY)
     })
   }
 
@@ -117,8 +119,9 @@
   /**
    * 加载页面
    * @param {*} array_content 
+   * @param {*} to_scrollY 
    */
-  const buildPage = function (array_content) {
+  const buildPage = function (array_content, to_scrollY) {
     let contentList = []
     array_content.forEach(element => {
       let element_short = element.replace(/(.*\/)??([^/]+)\/?$/, "$2");
@@ -133,6 +136,10 @@
 
     main.innerHTML = `<ul class=clearfix>${contentList.join('\n')}</ul>`;
     initImg();
+
+    setTimeout(() => {
+      window.scroll(0, to_scrollY || 0)
+    }, 0);
   }
 
   /**
@@ -144,7 +151,7 @@
      */
     bindEvent('a', 'click', function (e) {
       e.preventDefault();
-      getFileNodes(this.getAttribute('href'));
+      getFileNodes(this.getAttribute('href'), window.scrollY, 0);
     })
 
     /**
@@ -153,9 +160,10 @@
     bindEvent('#nav', 'click', function (e) {
       e.preventDefault();
       let currPath = this.getAttribute('path');
+      let scrollY = this.getAttribute('scrollY');
       let prePath = currPath.replace(/^(.*\/)??([^/]+)\/?$/, '$1');
 
-      getFileNodes(prePath);
+      getFileNodes(prePath, 0, scrollY);
     })
 
     /**
