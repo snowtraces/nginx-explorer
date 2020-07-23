@@ -83,10 +83,9 @@
   /**
    * 获取列表
    * @param {*} nodeName 
-   * @param {*} from_scrollY 
-   * @param {*} to_scrollY 
+   * @param {*} scrollQueue 滚动位置队列 父父级|父级|当前 
    */
-  const getFileNodes = function (nodeName, from_scrollY, to_scrollY) {
+  const getFileNodes = function (nodeName, scrollQueue) {
     get(base_path + nodeName).then(data => {
       let reg_base = new RegExp("<pre>([^`]*)</pre>", "g");
       let match_base = data.match(reg_base);
@@ -100,6 +99,15 @@
       let next_nodes = array_base.map(element => element.replace(/^.*\"(.*)\"[^`]*$/, "$1"))
         .filter(href => href != "../" && href != "admin/" && href != "</pre>")
         .map(href => nodeName + href);
+
+      // 获取滚动位置
+      let to_scrollY = 0;
+      let from_scrollY = 0;
+      if (scrollQueue) {
+        let scrollArray = scrollQueue.split('|');
+        to_scrollY = scrollArray.pop();
+        from_scrollY = scrollArray.join('|');
+      }
 
       buildPage(next_nodes || [], to_scrollY)
       nav.setAttribute('path', nodeName)
@@ -151,7 +159,8 @@
      */
     bindEvent('a', 'click', function (e) {
       e.preventDefault();
-      getFileNodes(this.getAttribute('href'), window.scrollY, 0);
+      let from_scrollY = nav.getAttribute('scrollY');
+      getFileNodes(this.getAttribute('href'), `${from_scrollY}|${window.scrollY.toFixed(0)}|0`);
     })
 
     /**
@@ -163,7 +172,7 @@
       let scrollY = this.getAttribute('scrollY');
       let prePath = currPath.replace(/^(.*\/)??([^/]+)\/?$/, '$1');
 
-      getFileNodes(prePath, 0, scrollY);
+      getFileNodes(prePath, scrollY);
     })
 
     /**
