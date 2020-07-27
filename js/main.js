@@ -17,7 +17,8 @@
   }
 
   let host = location.host;
-  let base_path = `//${host}/CODE/`;
+  window.g_base_path = window.g_base_path || `/CODE/`;
+  window.g_full_path = `//${host}${window.g_base_path}`
 
   /**
    * dom选择
@@ -86,13 +87,13 @@
    * @param {*} scrollQueue 滚动位置队列 父父级|父级|当前 
    */
   const getFileNodes = function (nodeName, scrollQueue) {
-    get(base_path + nodeName).then(data => {
+    get(g_full_path + nodeName).then(data => {
       let reg_base = new RegExp("<pre>([^`]*)</pre>", "g");
       let match_base = data.match(reg_base);
       if (!match_base) {
         return []
       } else {
-        // console.log(JSON.stringify({ base_path, nodeName, data }, 0, 2))
+        // console.log(JSON.stringify({  g_base_path , nodeName, data }, 0, 2))
       }
       let array_base = match_base[0].split("\n");
 
@@ -134,11 +135,11 @@
     array_content.forEach(element => {
       let element_short = element.replace(/(.*\/)??([^/]+)\/?$/, "$2");
       if (/\.(jpe?g|png)$/.test(element)) {
-        contentList.push(`<li class='li-img'><img raw-src='${base_path + element}' title='${element_short}' ></li>`);
+        contentList.push(`<li class='li-img'><img raw-src='${g_full_path + element}' title='${element_short}' ></li>`);
       } else if (/\.mp4$/.test(element)) {
-        contentList.push(`<li class='li-img'><video controls src='${base_path + element}' title='${element_short}' ></li>`);
+        contentList.push(`<li class='li-img'><video controls src='${g_full_path + element}' title='${element_short}' ></li>`);
       } else {
-        contentList.push(`<li><a href='${element}'>${element_short}</a></li>`);
+        contentList.push(`<li><a href='${element}'>${decodeURI(element_short)}</a></li>`);
       }
     });
 
@@ -176,6 +177,33 @@
     })
 
     /**
+     * 点击设置
+     */
+    bindEvent('#show-btn', 'click', function (e) {
+      let isShow = el('[name="base-path"]').classList.contains('show');
+      if (isShow) {
+        el('[name="base-path"]').classList.remove('show');
+        el('[name="base-path"]').classList.add('hide');
+        el('#show-btn').classList.remove('on-active');
+
+        let base_path = el('[name="base-path"]').value
+        if (base_path) {
+          if (!base_path.endsWith("/")) {
+            base_path += "/"
+          }
+          window.g_base_path = base_path;
+          window.g_full_path = `//${host}${window.g_base_path}`
+          getFileNodes("");
+        }
+      } else {
+        el('[name="base-path"]').classList.remove('hide');
+        el('[name="base-path"]').classList.add('show');
+        el('#show-btn').classList.add('on-active');
+        el('[name="base-path"]').value = window.g_base_path
+      }
+    })
+
+    /**
      * 图片最大化
      */
     bindEvent('.li-img img', "click", function (e) {
@@ -200,4 +228,10 @@
 
   eventHandler()
   getFileNodes("");
+  var ua = window.navigator.userAgent.toLowerCase();
+  if(/iphone|ipod|ipad/i.test(navigator.appVersion) && /MicroMessenger/i.test(ua)){
+      document.body.addEventListener('focusout', () => {
+          window.scrollTo({ top: 0, left: 0, behavior: 'smooth' })
+      });
+  }
 }
