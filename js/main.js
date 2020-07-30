@@ -91,10 +91,13 @@
       let reg_base = new RegExp("<pre>([^`]*)</pre>", "g");
       let match_base = data.match(reg_base);
       if (!match_base) {
-        return []
-      } else {
-        // console.log(JSON.stringify({  g_base_path , nodeName, data }, 0, 2))
+        // 直接展示内容
+        el('#show-raw > textarea').innerHTML = data
+        el('#show-raw').classList.remove('hide')
+        el('#show-raw').classList.add('show')
+        return;
       }
+
       let array_base = match_base[0].split("\n");
 
       let next_nodes = array_base.map(element => element.replace(/^.*\"(.*)\"[^`]*$/, "$1"))
@@ -207,14 +210,24 @@
      * 图片最大化
      */
     bindEvent('.li-img img', "click", function (e) {
-      el('#show img').src = this.getAttribute('src')
-      el('#show').classList.add('show')
-      el('#show').classList.remove('hide')
+      el('#show-img img').src = this.getAttribute('src')
+      el('#show-img').classList.add('show')
+      el('#show-img').classList.remove('hide')
     })
 
-    bindEvent('#show', 'click', () => {
-      el('#show').classList.add('hide')
-      el('#show').classList.remove('show')
+    bindEvent('#show-img', 'click', () => {
+      el('#show-img').classList.add('hide')
+      el('#show-img').classList.remove('show')
+    })
+
+    /**
+     * 数据模态框展示
+     */
+    bindEvent('#show-raw', 'click', function (e) {
+      if (e.path[0].tagName.toUpperCase() !== 'TEXTAREA') {
+        el('#show-raw').classList.add('hide')
+        el('#show-raw').classList.remove('show')
+      }
     })
 
     /**
@@ -229,9 +242,9 @@
   eventHandler()
   getFileNodes("");
   var ua = window.navigator.userAgent.toLowerCase();
-  if(/iphone|ipod|ipad/i.test(navigator.appVersion) && /MicroMessenger/i.test(ua)){
-      document.body.addEventListener('focusout', () => {
-          window.scrollTo({ top: 0, left: 0, behavior: 'smooth' })
-      });
+  if (/iphone|ipod|ipad/i.test(navigator.appVersion) && /MicroMessenger/i.test(ua)) {
+    document.body.addEventListener('focusout', () => {
+      window.scrollTo({ top: 0, left: 0, behavior: 'smooth' })
+    });
   }
 }
