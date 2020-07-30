@@ -81,16 +81,29 @@
     })
   }
 
+  const sizeBeauty = function (sizeNumber) {
+    let sizeUnits = ['B', 'K', 'M', 'G']
+    let _size = sizeNumber
+    let i = 0
+    while ((sizeNumber = sizeNumber / 1000) > 1) {
+      i++
+    }
+    return _size / (1000 ** i) + sizeUnits[i]
+  }
+
   /**
    * 获取列表
    * @param {*} nodeName 
    * @param {*} scrollQueue 滚动位置队列 父父级|父级|当前 
    */
-  const getFileNodes = function (nodeName, scrollQueue) {
+  const getFileNodes = function (nodeName, scrollQueue, fileSize) {
     get(g_full_path + nodeName).then(data => {
       let reg_base = new RegExp("<pre>([^`]*)</pre>", "g");
       let match_base = data.match(reg_base);
       if (!match_base) {
+        if (fileSize > 1_000_000) {
+          return;
+        }
         // 直接展示内容
         el('#show-raw > textarea').innerHTML = data
         el('#show-raw').classList.remove('hide')
@@ -100,9 +113,29 @@
 
       let array_base = match_base[0].split("\n");
 
-      let next_nodes = array_base.map(element => element.replace(/^.*\"(.*)\"[^`]*$/, "$1"))
-        .filter(href => href != "../" && href != "admin/" && href != "</pre>")
-        .map(href => nodeName + href);
+      let sizeUnits = ['K', 'M', 'G']
+      let next_nodes = array_base
+        .map(element => {
+          let path = element.replace(/^.*\"(.*)\"[^`]*$/, "$1")
+          let size = element.replace(/^.* ([^\b-]+) ?$/, "$1").trim()
+          let sizeNumber = 0
+          if (/^[0-9]+$/.test(size)) {
+            sizeNumber = size
+          } else {
+            sizeUnits.forEach((unit, idx) => {
+              if (size.endsWith(unit)) {
+                sizeNumber = size.substr(0, size.length - 1) * (1000 ** (idx + 1))
+              }
+            })
+          }
+
+          return { path: path, size: sizeNumber }
+        })
+        .filter(node => node.path != "../" && node.path != "admin/" && node.path != "</pre>")
+        .map(node => {
+          node.path = nodeName + node.path;
+          return node;
+        });
 
       // 获取滚动位置
       let to_scrollY = 0;
@@ -135,14 +168,18 @@
    */
   const buildPage = function (array_content, to_scrollY) {
     let contentList = []
-    array_content.forEach(element => {
-      let element_short = element.replace(/(.*\/)??([^/]+)\/?$/, "$2");
-      if (/\.(jpe?g|png)$/.test(element)) {
-        contentList.push(`<li class='li-img'><img raw-src='${g_full_path + element}' title='${element_short}' ></li>`);
-      } else if (/\.mp4$/.test(element)) {
-        contentList.push(`<li class='li-img'><video controls src='${g_full_path + element}' title='${element_short}' ></li>`);
+    array_content.forEach(node => {
+      let path = node.path;
+      let path_short = path.replace(/(.*\/)??([^/]+)\/?$/, "$2");
+      if (node.size) {
+        path_short += ` [${sizeBeauty(node.size)}]`;
+      }
+      if (/\.(jpe?g|png)$/.test(path)) {
+        contentList.push(`<li class='li-img'><img raw-src='${g_full_path + path}' title='${path_short}' ></li>`);
+      } else if (/\.mp4$/.test(path)) {
+        contentList.push(`<li class='li-img'><video controls src='${g_full_path + path}' title='${path_short}' ></li>`);
       } else {
-        contentList.push(`<li><a href='${element}'>${decodeURI(element_short)}</a></li>`);
+        contentList.push(`<li><a href='${path}' data-size=${node.size}>${decodeURI(path_short)}</a></li>`);
       }
     });
 
@@ -164,7 +201,7 @@
     bindEvent('a', 'click', function (e) {
       e.preventDefault();
       let from_scrollY = nav.getAttribute('scrollY');
-      getFileNodes(this.getAttribute('href'), `${from_scrollY}|${window.scrollY.toFixed(0)}|0`);
+      getFileNodes(this.getAttribute('href'), `${from_scrollY}|${window.scrollY.toFixed(0)}|0`, e.path[0].dataset.size);
     })
 
     /**
