@@ -26,6 +26,14 @@
   const el = (selector) => document.querySelector(selector)
   const elAll = (selector) => document.querySelectorAll(selector)
 
+
+  const eventTarget = function(e) {
+    if (!e) {
+      return null
+    }
+    return (e.path || (e.composedPath && e.composedPath()))[0]
+  }
+
   /**
    * 事件绑定
    */
@@ -88,7 +96,7 @@
     while ((sizeNumber = sizeNumber / 1000) > 1) {
       i++
     }
-    return _size / (1000 ** i) + sizeUnits[i]
+    return (_size / (1000 ** i)).toFixed(0) + sizeUnits[i]
   }
 
   /**
@@ -171,15 +179,16 @@
     array_content.forEach(node => {
       let path = node.path;
       let path_short = path.replace(/(.*\/)??([^/]+)\/?$/, "$2");
-      if (node.size) {
-        path_short += ` [${sizeBeauty(node.size)}]`;
-      }
       if (/\.(jpe?g|png)$/.test(path)) {
         contentList.push(`<li class='li-img'><img raw-src='${g_full_path + path}' title='${path_short}' ></li>`);
       } else if (/\.mp4$/.test(path)) {
         contentList.push(`<li class='li-img'><video controls src='${g_full_path + path}' title='${path_short}' ></li>`);
       } else {
-        contentList.push(`<li><a href='${path}' data-size=${node.size}>${decodeURI(path_short)}</a></li>`);
+        if (node.size) {
+          contentList.push(`<li><a class='with-size' href='${path}' data-size=${node.size}>${decodeURI(path_short)}<span>[${sizeBeauty(node.size)}]</span></a></li>`);
+        } else {
+          contentList.push(`<li><a href='${path}' data-size=${node.size}>${decodeURI(path_short)}</a></li>`);
+        }
       }
     });
 
@@ -201,7 +210,7 @@
     bindEvent('a', 'click', function (e) {
       e.preventDefault();
       let from_scrollY = nav.getAttribute('scrollY');
-      getFileNodes(this.getAttribute('href'), `${from_scrollY}|${window.scrollY.toFixed(0)}|0`, e.path[0].dataset.size);
+      getFileNodes(this.getAttribute('href'), `${from_scrollY}|${window.scrollY.toFixed(0)}|0`, eventTarget(e).dataset.size);
     })
 
     /**
@@ -261,7 +270,7 @@
      * 数据模态框展示
      */
     bindEvent('#show-raw', 'click', function (e) {
-      if (e.path[0].tagName.toUpperCase() !== 'TEXTAREA') {
+      if (eventTarget(e).tagName.toUpperCase() !== 'TEXTAREA') {
         el('#show-raw').classList.add('hide')
         el('#show-raw').classList.remove('show')
       }

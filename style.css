@@ -57,6 +57,15 @@ li > a {
   text-overflow: ellipsis;
   overflow: hidden;
 }
+li > a.with-size {
+  position: relative;
+  padding-right: 50px;
+}
+
+li > a.with-size > span {
+  position: absolute;
+  right: 0;
+}
 
 #show-img{
   width: 100%;
