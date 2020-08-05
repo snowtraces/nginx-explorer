@@ -27,7 +27,7 @@
   const elAll = (selector) => document.querySelectorAll(selector)
 
 
-  const eventTarget = function(e) {
+  const eventTarget = function (e) {
     if (!e) {
       return null
     }
@@ -100,16 +100,33 @@
   }
 
   /**
+   * 根据文件名判断是否为文本文件
+   * @param {*} fileName 
+   */
+  const checkIsTextFile = function (fileName) {
+    if (fileName.lastIndexOf('.') === -1) {
+      return true;
+    }
+    let binaryFileExtends = ['txt', 'html', 'htm', 'sh', 'py', 'java', 'c', 'bat', 'ps1', 'log', 'sql', 'xml', 'js', 'iml', 'md'];
+    let subfix = fileName.substr(fileName.lastIndexOf('.') + 1);
+    return binaryFileExtends.includes(subfix.toLowerCase())
+  }
+
+  /**
    * 获取列表
    * @param {*} nodeName 
    * @param {*} scrollQueue 滚动位置队列 父父级|父级|当前 
    */
   const getFileNodes = function (nodeName, scrollQueue, fileSize) {
+    if ((fileSize && fileSize !== '0') && !checkIsTextFile(nodeName.substr(nodeName.lastIndexOf('/') + 1))) {
+      return;
+    }
+
     get(g_full_path + nodeName).then(data => {
       let reg_base = new RegExp("<pre>([^`]*)</pre>", "g");
       let match_base = data.match(reg_base);
-      if (!match_base) {
-        if (fileSize > 1_000_000) {
+      if (!data.includes("<h1>Index of") || !match_base) {
+        if (fileSize > 5_000_000) {
           return;
         }
         // 直接展示内容
