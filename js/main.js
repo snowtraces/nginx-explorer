@@ -107,7 +107,11 @@
     if (fileName.lastIndexOf('.') === -1) {
       return true;
     }
-    let binaryFileExtends = ['txt', 'html', 'htm', 'sh', 'py', 'java', 'c', 'bat', 'ps1', 'log', 'sql', 'xml', 'js', 'iml', 'md'];
+    let binaryFileExtends = [
+      'txt', 'html', 'htm', 'sh', 'py', 'java', 'c', 'cpp', 'bat', 'ps1', 
+      'log', 'sql', 'xml', 'js', 'iml', 'md', 'json', 'csv', 'vb', 'pl',
+      'css', 'vue', 'swift'
+    ];
     let subfix = fileName.substr(fileName.lastIndexOf('.') + 1);
     return binaryFileExtends.includes(subfix.toLowerCase())
   }
@@ -288,6 +292,7 @@
      */
     bindEvent('#show-raw', 'click', function (e) {
       if (eventTarget(e).tagName.toUpperCase() !== 'TEXTAREA') {
+        el('#show-raw > textarea').innerHTML = ''
         el('#show-raw').classList.add('hide')
         el('#show-raw').classList.remove('show')
       }
