@@ -134,7 +134,7 @@
           return;
         }
         // 直接展示内容
-        el('#show-raw > textarea').innerHTML = data
+        el('#show-raw > textarea').value = data
         el('#show-raw').classList.remove('hide')
         el('#show-raw').classList.add('show')
         return;
@@ -292,7 +292,7 @@
      */
     bindEvent('#show-raw', 'click', function (e) {
       if (eventTarget(e).tagName.toUpperCase() !== 'TEXTAREA') {
-        el('#show-raw > textarea').innerHTML = ''
+        el('#show-raw > textarea').value = ''
         el('#show-raw').classList.add('hide')
         el('#show-raw').classList.remove('show')
       }
