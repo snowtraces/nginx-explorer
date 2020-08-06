@@ -28,10 +28,36 @@ button {
   height: 0;
 }
 
+/* #nav-bar */
+#nav-bar {
+  padding: 10px 15px;
+  color: #fff;
+  background: #555;
+  position: fixed;
+  width: 100%;
+  top: 0;
+  left: 0;
+  z-index: 2;
+}
+
+.nav-info {
+  padding-right: 10px;
+}
+
+.nav-seg {
+  cursor: pointer;
+}
+
+/* #main */
+#main {
+  margin-top: 45px;
+}
+
 ul {
   padding: 10px;
   margin: 0 auto;
 }
+
 li {
   float: left;
   width: calc(100% - 20px);

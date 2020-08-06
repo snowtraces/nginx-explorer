@@ -108,9 +108,9 @@
       return true;
     }
     let binaryFileExtends = [
-      'txt', 'html', 'htm', 'sh', 'py', 'java', 'c', 'cpp', 'bat', 'ps1', 
+      'txt', 'html', 'htm', 'sh', 'py', 'java', 'c', 'cpp', 'bat', 'ps1',
       'log', 'sql', 'xml', 'js', 'iml', 'md', 'json', 'csv', 'vb', 'pl',
-      'css', 'vue', 'swift'
+      'css', 'vue', 'swift', 'ts'
     ];
     let subfix = fileName.substr(fileName.lastIndexOf('.') + 1);
     return binaryFileExtends.includes(subfix.toLowerCase())
@@ -169,13 +169,23 @@
       // 获取滚动位置
       let to_scrollY = 0;
       let from_scrollY = 0;
+      let scrollArray = [];
       if (scrollQueue) {
-        let scrollArray = scrollQueue.split('|');
+        scrollArray = scrollQueue.split('|');
         to_scrollY = scrollArray.pop();
         from_scrollY = scrollArray.join('|');
       }
 
       buildPage(next_nodes || [], to_scrollY)
+      let nodeArray = nodeName.split('/');
+      el('.nav-detail').innerHTML = '/ ' +
+        nodeArray
+          .filter(node => node)
+          .map((node, idx) =>
+            `<span 
+              data-path='${nodeArray.slice(0, idx + 1).join('/')}/' 
+              data-scrollY='${scrollArray.slice(0, idx + 3).join('|')}' 
+              class='nav-seg'>${node}</span>`).join(' / ');
       nav.setAttribute('path', nodeName)
       nav.setAttribute('scrollY', from_scrollY)
     })
@@ -303,6 +313,21 @@
      */
     window.addEventListener('scroll', function (e) {
       initImg();
+    })
+
+    /**
+     * 导航栏点击跳转
+     */
+    bindEvent('.nav-seg', 'click', function (e) {
+      let _this = eventTarget(e);
+      let path = _this.dataset.path
+      let currPath = nav.getAttribute('path')
+      if (path === currPath) {
+        return
+      }
+
+      let scrollY = _this.dataset.scrolly;
+      getFileNodes(path, scrollY)
     })
 
   }
