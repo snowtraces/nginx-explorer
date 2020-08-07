@@ -333,6 +333,7 @@
   }
 
   eventHandler()
+  
   getFileNodes("");
   var ua = window.navigator.userAgent.toLowerCase();
   if (/iphone|ipod|ipad/i.test(navigator.appVersion) && /MicroMessenger/i.test(ua)) {
