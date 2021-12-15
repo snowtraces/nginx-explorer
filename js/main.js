@@ -16,8 +16,21 @@
     return true
   }
 
+  /**
+   * 缓存
+   */
+  const cache = {
+    get(key) {
+      return localStorage.getItem(key)
+    },
+    set(key, value) {
+      localStorage.setItem(key, value)
+    }
+  }
+
   let host = location.host;
-  window.g_base_path = window.g_base_path || `/CODE/`;
+  window.g_base_path = window.g_base_path || cache.get('g_base_path') || location.pathname.replace(/^(\/[^\/]+\/).*/, "$1");
+  cache.set('g_base_path', window.g_base_path)
   window.g_full_path = `//${host}${window.g_base_path}`
 
   /**
@@ -33,6 +46,7 @@
     }
     return (e.path || (e.composedPath && e.composedPath()))[0]
   }
+
 
   /**
    * 事件绑定
@@ -107,13 +121,13 @@
     if (fileName.lastIndexOf('.') === -1) {
       return true;
     }
-    let binaryFileExtends = [
+    let plainTextFileExtends = [
       'txt', 'html', 'htm', 'sh', 'py', 'java', 'c', 'cpp', 'bat', 'ps1',
       'log', 'sql', 'xml', 'js', 'iml', 'md', 'json', 'csv', 'vb', 'pl',
       'css', 'vue', 'swift', 'ts'
     ];
     let subfix = fileName.substr(fileName.lastIndexOf('.') + 1);
-    return binaryFileExtends.includes(subfix.toLowerCase())
+    return plainTextFileExtends.includes(subfix.toLowerCase())
   }
 
   /**
@@ -272,6 +286,7 @@
             base_path += "/"
           }
           window.g_base_path = base_path;
+          cache.set('g_base_path', base_path)
           window.g_full_path = `//${host}${window.g_base_path}`
           getFileNodes("");
         }
